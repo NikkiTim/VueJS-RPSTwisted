@@ -1,6 +1,6 @@
 new Vue({
   el: '#app',
-  data: {
+      data: {
     beginning: true,
     userChoice: 0,
     compChoice: 0,
@@ -9,10 +9,11 @@ new Vue({
     userWins: 0,
     userWidth: 0,
     compWidth: 0,
-    timer: '',
     time: 60,
     userAction: 0,
-    finalScore: 0
+    finalScore: 0,
+    hiScore: 0,
+    timer_id: -1
   },
   methods: {
       startGame: function () {
@@ -115,17 +116,17 @@ new Vue({
       rockChoice: function () {
           this.userChoice = 0;
           this.gameOutcome();
-          this.startGame();
+          this.compChoose();
       },
       paperChoice: function () {
           this.userChoice = 1;
           this.gameOutcome();
-          this.startGame();
+          this.compChoose();
       },
       scissorChoice: function () {
           this.userChoice = 2;
           this.gameOutcome();
-          this.startGame();
+          this.compChoose();
       },
 
       gameOutcome: function () {
@@ -174,7 +175,7 @@ new Vue({
                   this.log.unshift({message: "Correct!"});
               } else {
                   this.compWins += 2;
-                  this.compWidth += 5;
+                  this.compWidth += 2;
                   this.log.unshift({message: "Incorrect!"})
               }
           }
@@ -186,7 +187,7 @@ new Vue({
                   this.log.unshift({message: "Correct!"});
               } else {
                   this.compWins += 2;
-                  this.compWidth += 5;
+                  this.compWidth += 2;
                   this.log.unshift({message: "Incorrect!"})
               }
           }
@@ -198,7 +199,7 @@ new Vue({
                   this.log.unshift({message: "Correct!"});
               } else {
                   this.compWins += 2;
-                  this.compWidth += 5;
+                  this.compWidth += 2;
                   this.log.unshift({message: "Incorrect!"})
               }
           }
@@ -211,7 +212,7 @@ new Vue({
                   this.log.unshift({message: "Correct!"});
               } else {
                   this.compWins += 2;
-                  this.compWidth += 5;
+                  this.compWidth += 2;
                   this.log.unshift({message: "Incorrect!"})
               }
           }
@@ -223,7 +224,7 @@ new Vue({
                   this.log.unshift({message: "Correct!"});
               } else {
                   this.compWins += 2;
-                  this.compWidth += 5;
+                  this.compWidth += 2;
                   this.log.unshift({message: "Incorrect!"})
               }
           }
@@ -231,68 +232,102 @@ new Vue({
           else if (this.compChoice == 2 && this.userAction == 2) {
               if (this.userChoice == 1) {
                   this.userWins++;
-                  this.userWidth += 2.5;
+                  this.userWidth++;
                   this.log.unshift({message: "Correct!"});
               } else {
                   this.compWins += 2;
-                  this.compWidth += 5;
+                  this.compWidth += 2;
                   this.log.unshift({message: "Incorrect!"})
               }
           }
-
-          //when user or computer reaches 10 wins, end game
-          if (this.time == 0) {
-
-              //subtract computer wins from user wins to calculate final score.
-              this.finalScore = this.userWins - this.compWins;
-
-              if (this.finalScore == 0) {
-                  //tie
-                  //display userWins,
-                  //display compWins,
-                  //show subtraction
-                  //Final score: finalScore
-                  //display message - Wow, you tied the computer. play again?
-
-                  //resetGame
-              }
-              else if (this.finalScore < 0) {
-                  //loss
-                  //display userWins,
-                  //display compWins,
-                  //show subtraction
-                  //Final score: finalScore
-                  //display message - You reached userWins points, but ultimately lost. Play again?
-
-                  //resetGame
-              }
-              else {
-                  //win
-                  //display userWins,
-                  //display compWins,
-                  //show subtraction
-                  //Final score
-                  //display message - You reached userWins points and beat the computer. Play again?
-
-                  //resetGame
-              }
-          }
       },
+
+      //calls all necessary functions to reset game
       resetGame: function () {
+          clearInterval(this.timer_id);
           //reset the game - clear game log, reset scores for new game
+          this.resetValues();
+          this.compChoose();
+          this.beginTime();
+      },
+
+
+      //resets all values
+      resetValues: function() {
           this.log = [];
           this.userWidth = 0;
           this.compWidth = 0;
           this.userWins = 0;
           this.compWins = 0;
+          this.time = 60;
+
       },
+
+      //starts timer
       beginTime: function(){
-          this.timer = setInterval(function(){
-              return this.time++;
-          }, 1000);
+          this.timer_id = setInterval(this.timeCheck, 1000);
+      },
+
+      timeCheck: function() {
+
+          //when timer hits 0, end game
+          if (this.time == 0) {
+
+              clearInterval(this.timer_id);
+              var startNew;
+
+              //subtract computer wins from user wins to calculate final score.
+              //(computer wins are penalized against the user at the end)
+              this.finalScore = this.userWins - this.compWins;
+
+              //determine if high-score
+              if(this.hiScore < this.finalScore){
+                  this.hiScore = this.finalScore;
+                  alert("You've made the new high score!");
+              }
+
+              if (this.finalScore == 0) {
+                  //tie
+                  startNew = confirm("Wow, you tied the computer at " + this.userwins + " points. Play again?");
+                  //resetGame
+                  if (startNew){
+                      this.resetGame();
+                  }else{
+                      this.beginning = true;
+                      this.resetValues();
+                  }
+              }
+              else if (this.finalScore < 0) {
+                  //loss
+                  startNew = confirm("You reached " + this.userWins + " points,  but ultimately lost" +
+                                    " with a final score of " + this.finalScore + " points. Play again?");
+                  //resetGame
+                  if (startNew){
+                      this.resetGame();
+                  }else{
+                      this.beginning = true;
+                      this.resetValues();
+                  }
+
+              }
+              else {
+                  //win
+                  startNew = confirm("You reached " + this.userWins + " points and beat the computer" +
+                                     " with a final score of " + this.finalScore + " points. Play again?");
+                  //resetGame
+                  if (startNew){
+                      this.resetGame();
+                  }else{
+                      this.beginning = true;
+                      this.resetValues();
+                  }
+              }
+          }
+          else {
+              //decrement timer until it reaches 0
+              this.time--;
+          }
+
       }
   },
-    computed: {
-
-    }
 });
